@@ -5,6 +5,12 @@ import {useForm, SubmitHandler} from "react-hook-form";
 import {REGISTER_FORM} from "../data";
 import {yupResolver} from "@hookform/resolvers/yup";
 import {registerSchema} from "../validation";
+import axiosInstance from "../config/axios.config";
+import toast from "react-hot-toast";
+import {useState} from "react";
+import {useNavigate} from "react-router-dom";
+import {AxiosError} from "axios";
+import {IErrorResponse} from "../interfaces";
 
 interface IFormInput {
   username: string;
@@ -13,6 +19,8 @@ interface IFormInput {
 }
 
 const RegisterPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -20,13 +28,44 @@ const RegisterPage = () => {
   } = useForm<IFormInput>({resolver: yupResolver(registerSchema)});
 
   // ** Handlers ** //
-  const onSubmit: SubmitHandler<IFormInput> = (data) => {
+  const onSubmit: SubmitHandler<IFormInput> = async (data) => {
     console.log(data);
-    /**
-     * * 1 - Pending => Loading
-     * * 2 - Fulfilled => Success => (optional)
-     * * 3 - Rejected => Failed => (optional)
-     */
+
+    // * 1 - Pending => Loading
+    setIsLoading(true);
+
+    try {
+      // * 2 - Fulfilled => Success => (optional)
+      const {status} = await axiosInstance.post("/auth/local/register", data);
+      if (status === 200) {
+        toast.success(
+          "You will navigate to the login page after 2 seconds to login!",
+          {
+            position: "bottom-center",
+            duration: 1500,
+            style: {
+              backgroundColor: "black",
+              color: "white",
+              width: "fit-content",
+            },
+          }
+        );
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 2000);
+      }
+    } catch (error) {
+      // * 3 - Rejected => Failed => (optional)
+      console.log(error);
+      const errorObj = error as AxiosError<IErrorResponse>;
+      toast.error(`${errorObj.response?.data.error.message}`, {
+        position: "bottom-center",
+        duration: 4000,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const renderRegisterForm = REGISTER_FORM.map(
@@ -52,7 +91,9 @@ const RegisterPage = () => {
       </h2>
       <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
         {renderRegisterForm}
-        <Button fullWidth>Register</Button>
+        <Button fullWidth isLoading={isLoading}>
+          Register
+        </Button>
       </form>
     </div>
   );
