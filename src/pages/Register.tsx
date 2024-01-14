@@ -8,7 +8,7 @@ import {registerSchema} from "../validation";
 import axiosInstance from "../config/axios.config";
 import toast from "react-hot-toast";
 import {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {AxiosError} from "axios";
 import {IErrorResponse} from "../interfaces";
 
@@ -94,6 +94,16 @@ const RegisterPage = () => {
         <Button fullWidth isLoading={isLoading}>
           Register
         </Button>
+
+        <p className="text-center text-sm text-gray-500 space-x-2">
+          <span>have an account?</span>
+          <Link
+            to={"/login"}
+            className="underline text-indigo-600 font-semibold"
+          >
+            Login
+          </Link>
+        </p>
       </form>
     </div>
   );
